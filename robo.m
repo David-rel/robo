@@ -5,11 +5,14 @@ done = 0;
 % touch sensor to A, 
 % Motors are B and C.
 while done == 0
-    % color = brick.ColorCode(2);
+    newDist = 0;
+    oldDist = 0;
     
     while brick.TouchPressed(3) == 0
+        color = brick.ColorCode(1);
         distance = brick.UltrasonicDist(4);
-        disp(distance);
+        disp("distance: " + distance);
+        disp("color: " + color)
         if distance > 102                                              
             brick.MoveMotor('B', 30);
             brick.MoveMotor('C', -30);
@@ -17,23 +20,55 @@ while done == 0
             pause(1);
             brick.MoveMotor('B', 40);
             brick.MoveMotor('C', 40);
+            %could need if
             
             pause(3);
         end
         brick.MoveMotor('B', 40);
         brick.MoveMotor('C', 40);
-        %if color == 5
-            % add code for red
-        %end
-        %if color == 3
-            % add code for green
-        %end
-        %if color == 2
-            % add cpde for blue
-        %end
-        %if color == 4
-            % add code for yellow
-        %end
+        if color == 5 % red
+            brick.StopAllMotors('Brake');
+            pause(1);
+            brick.MoveMotor('B', 40);
+            brick.MoveMotor('C', 40);
+            pause(2);
+        end 
+        if color == 3 % green
+            brick.beep();
+            pause(0.5);
+            brick.beep();
+            pause(0.5);
+            brick.beep();
+            pause(0.5);
+            brick.StopAllMotors('Brake');
+            pause(1);
+            brick.MoveMotor('B',-50);
+            brick.MoveMotor('C', -50);
+            pause(2); 
+            brick.MoveMotor('B', -25);
+            brick.MoveMotor('C', 25);
+            disp("turning right due to: " + color);
+            pause(1);
+        end
+        if color == 2 % blue
+            brick.beep();
+            pause(0.5);
+            brick.beep();
+            pause(0.5);x
+            brick.StopAllMotors('Brake');
+            pause(1);
+            brick.MoveMotor('B',-50);
+            brick.MoveMotor('C', -50);
+            pause(2); 
+            brick.MoveMotor('B', -25);
+            brick.MoveMotor('C', 25);
+            disp("turning right due to: " + color);
+            pause(1);
+        end
+        if color == 4 % yellow
+            brick.StopAllMotors('Brake');
+            pause(1);
+        end
     end
     if brick.TouchPressed(3) == 1
         brick.StopAllMotors('Brake');
