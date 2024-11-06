@@ -35,60 +35,16 @@ function beepMultiple(brick, times)
     end
 end
 
-function fixMovement(brick, oldDist, newDist, distanceThreshold, cooldownTime, consecutiveThreshold)
-    persistent consecutiveCloser consecutiveFarther lastAdjustmentTime
-    
-    if isempty(consecutiveCloser)
-        consecutiveCloser = 0;
-    end
-    if isempty(consecutiveFarther)
-        consecutiveFarther = 0;
-    end
-    if isempty(lastAdjustmentTime)
-        lastAdjustmentTime = tic;
-    end
-
-    distanceDiff = abs(newDist - oldDist);
-    
-    if distanceDiff < distanceThreshold
-        return;
-    end
-
-    if toc(lastAdjustmentTime) < cooldownTime
-        return;
-    end
-
-    if newDist < oldDist
-        consecutiveCloser = consecutiveCloser + 1;
-        consecutiveFarther = 0;
-    elseif newDist > oldDist
-        consecutiveFarther = consecutiveFarther + 1;
-        consecutiveCloser = 0;
-    end
-
-    if consecutiveCloser >= consecutiveThreshold
-        disp("Adjusting: Consistently getting closer to wall, turning right");
-        turnRight(brick, 20, 0.5);
-        consecutiveCloser = 0;
-        lastAdjustmentTime = tic;
-    elseif consecutiveFarther >= consecutiveThreshold
-        disp("Adjusting: Consistently moving away from wall, turning left");
-        turnLeft(brick, 20, 0.5);
-        consecutiveFarther = 0;
-        lastAdjustmentTime = tic;
-    end
-end
-
-oldDist = brick.UltrasonicDist(4);
-
 while done == 0
     color = brick.ColorCode(1);
     newDist = brick.UltrasonicDist(4);
     disp("New distance: " + newDist);
     disp("Color: " + color);
 
-    fixMovement(brick, oldDist, newDist, 10, 0.5, 3);
-    oldDist = newDist;
+    if newDist > 102
+        turnRight(brick, 30, 1);
+        moveForward(brick, 40, 3);
+    end
 
     switch color
         case 5
@@ -121,14 +77,13 @@ while done == 0
         moveForward(brick, -30, 1);
         
         if newDist < 65
-            turnRight(brick, 25, 1);
+            turnRight(brick, 30, 1);
             disp("Turning right due to: " + newDist);
         else
-            turnLeft(brick, 25, 1);
+            turnLeft(brick, 30, 1);
             disp("Turning left due to: " + newDist);
         end
     else
-        moveStraight(brick, 40); % Keep moving straight if no conditions are triggered
+        moveStraight(brick, 40);
     end
 end
-
