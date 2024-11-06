@@ -36,67 +36,93 @@ function beepMultiple(brick, times)
     end
 end
 
-% Function to adjust movement based on distance
-function fixMovement(brick, oldDist, newDist)
+function fixMovement(brick, oldDist, newDist, distanceThreshold, cooldownTime, consecutiveThreshold)
+    persistent consecutiveCloser consecutiveFarther lastAdjustmentTime
+    
+    % Initialize counters if they are empty
+    if isempty(consecutiveCloser)
+        consecutiveCloser = 0;
+    end
+    if isempty(consecutiveFarther)
+        consecutiveFarther = 0;
+    end
+    if isempty(lastAdjustmentTime)
+        lastAdjustmentTime = tic; % Start the timer
+    end
+
+    distanceDiff = abs(newDist - oldDist);
+    
+    % Only proceed if the distance difference is significant enough
+    if distanceDiff < distanceThreshold
+        return; % Skip minor fluctuations
+    end
+
+    % Cooldown check to prevent continuous adjustments
+    if toc(lastAdjustmentTime) < cooldownTime
+        return;
+    end
+
+    % Detect closer or farther trends with consecutive checks
     if newDist < oldDist
-        % Moving closer to the wall, so turn slightly right
-        disp("Adjusting: Getting closer to wall, turning right");
-        turnRight(brick, 20, 0.5);
+        consecutiveCloser = consecutiveCloser + 1;
+        consecutiveFarther = 0;
     elseif newDist > oldDist
-        % Moving away from the wall, so turn slightly left
-        disp("Adjusting: Moving away from wall, turning left");
+        consecutiveFarther = consecutiveFarther + 1;
+        consecutiveCloser = 0;
+    end
+
+    % Adjust only if the trend is consistent for the required checks
+    if consecutiveCloser >= consecutiveThreshold
+        disp("Adjusting: Consistently getting closer to wall, turning right");
+        turnRight(brick, 20, 0.5);
+        consecutiveCloser = 0; % Reset counter after adjustment
+        lastAdjustmentTime = tic; % Reset cooldown timer
+    elseif consecutiveFarther >= consecutiveThreshold
+        disp("Adjusting: Consistently moving away from wall, turning left");
         turnLeft(brick, 20, 0.5);
-    elseif abs(newDist - oldDist) > 50
-        % Significant distance increase, indicating an opening
-        disp("Opening detected, adjusting to move forward");
-        moveForward(brick, 40, 1);
+        consecutiveFarther = 0; % Reset counter after adjustment
+        lastAdjustmentTime = tic; % Reset cooldown timer
     end
 end
 
+
 % Main loop
+oldDist = brick.UltrasonicDist(4); 
+
 while done == 0
-    oldDist = brick.UltrasonicDist(4); % Initial distance check
-    
-    while brick.TouchPressed(3) == 0
-        color = brick.ColorCode(1);
-        newDist = brick.UltrasonicDist(4);
-        disp("New distance: " + newDist);
-        disp("Color: " + color);
+    color = brick.ColorCode(1);
+    newDist = brick.UltrasonicDist(4);
+    disp("New distance: " + newDist);
+    disp("Color: " + color);
 
-        % Fix movement based on distance change
-        fixMovement(brick, oldDist, newDist);
-        
-        % Update oldDist for the next loop
-        oldDist = newDist;
+    fixMovement(brick, oldDist, newDist, 10, 0.5, 3);
+    oldDist = newDist;
 
-        % Check color and respond accordingly
-        switch color
-            case 5 % red
-                stopMotors(brick, 'Brake');
-                pause(1);
-                moveForward(brick, 40, 2);
-                
-            case 3 % green
-                stopMotors(brick, 'Brake');
-                beepMultiple(brick, 3); % Beep three times
-                pause(1);
-                moveForward(brick, -50, 2);
-                turnRight(brick, 25, 1);
+    switch color
+        case 5 % red
+            stopMotors(brick, 'Brake');
+            pause(1);
+            moveForward(brick, 40, 2);
+            
+        case 3 % green
+            stopMotors(brick, 'Brake');
+            beepMultiple(brick, 3);
+            pause(1);
+            moveForward(brick, -50, 2);
+            turnRight(brick, 25, 1);
 
-            case 2 % blue
-                stopMotors(brick, 'Brake');
-                beepMultiple(brick, 2); % Beep two times
-                pause(1);
-                moveForward(brick, -50, 2);
-                turnRight(brick, 25, 1);
+        case 2 % blue
+            stopMotors(brick, 'Brake');
+            beepMultiple(brick, 2);
+            pause(1);
+            moveForward(brick, -50, 2);
+            turnRight(brick, 25, 1);
 
-            case 4 % yellow
-                stopMotors(brick, 'Brake');
-                pause(1);
-        end
+        case 4 % yellow
+            stopMotors(brick, 'Brake');
+            pause(1);
     end
 
-    % Action on touch press
     if brick.TouchPressed(3) == 1
         stopMotors(brick, 'Brake');
         pause(2);
