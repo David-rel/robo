@@ -1,34 +1,33 @@
-% Connect and configure brick
-brick = ConnectBrick('ANT');
+% brick = ConnectBrick('ANT');
 done = 0;
 
-% Function to move motors forward
+function moveStraight(brick, speed)
+    brick.MoveMotor('B', speed);
+    brick.MoveMotor('C', speed);
+end
+
 function moveForward(brick, speed, duration)
     brick.MoveMotor('B', speed);
     brick.MoveMotor('C', speed);
     pause(duration);
 end
 
-% Function to stop all motors
 function stopMotors(brick, mode)
     brick.StopAllMotors(mode);
 end
 
-% Function to turn right
 function turnRight(brick, speed, duration)
     brick.MoveMotor('B', -speed);
     brick.MoveMotor('C', speed);
     pause(duration);
 end
 
-% Function to turn left
 function turnLeft(brick, speed, duration)
     brick.MoveMotor('B', speed);
     brick.MoveMotor('C', -speed);
     pause(duration);
 end
 
-% Function to beep a specified number of times
 function beepMultiple(brick, times)
     for i = 1:times
         brick.beep();
@@ -39,7 +38,6 @@ end
 function fixMovement(brick, oldDist, newDist, distanceThreshold, cooldownTime, consecutiveThreshold)
     persistent consecutiveCloser consecutiveFarther lastAdjustmentTime
     
-    % Initialize counters if they are empty
     if isempty(consecutiveCloser)
         consecutiveCloser = 0;
     end
@@ -47,22 +45,19 @@ function fixMovement(brick, oldDist, newDist, distanceThreshold, cooldownTime, c
         consecutiveFarther = 0;
     end
     if isempty(lastAdjustmentTime)
-        lastAdjustmentTime = tic; % Start the timer
+        lastAdjustmentTime = tic;
     end
 
     distanceDiff = abs(newDist - oldDist);
     
-    % Only proceed if the distance difference is significant enough
     if distanceDiff < distanceThreshold
-        return; % Skip minor fluctuations
+        return;
     end
 
-    % Cooldown check to prevent continuous adjustments
     if toc(lastAdjustmentTime) < cooldownTime
         return;
     end
 
-    % Detect closer or farther trends with consecutive checks
     if newDist < oldDist
         consecutiveCloser = consecutiveCloser + 1;
         consecutiveFarther = 0;
@@ -71,23 +66,20 @@ function fixMovement(brick, oldDist, newDist, distanceThreshold, cooldownTime, c
         consecutiveCloser = 0;
     end
 
-    % Adjust only if the trend is consistent for the required checks
     if consecutiveCloser >= consecutiveThreshold
         disp("Adjusting: Consistently getting closer to wall, turning right");
         turnRight(brick, 20, 0.5);
-        consecutiveCloser = 0; % Reset counter after adjustment
-        lastAdjustmentTime = tic; % Reset cooldown timer
+        consecutiveCloser = 0;
+        lastAdjustmentTime = tic;
     elseif consecutiveFarther >= consecutiveThreshold
         disp("Adjusting: Consistently moving away from wall, turning left");
         turnLeft(brick, 20, 0.5);
-        consecutiveFarther = 0; % Reset counter after adjustment
-        lastAdjustmentTime = tic; % Reset cooldown timer
+        consecutiveFarther = 0;
+        lastAdjustmentTime = tic;
     end
 end
 
-
-% Main loop
-oldDist = brick.UltrasonicDist(4); 
+oldDist = brick.UltrasonicDist(4);
 
 while done == 0
     color = brick.ColorCode(1);
@@ -99,26 +91,26 @@ while done == 0
     oldDist = newDist;
 
     switch color
-        case 5 % red
+        case 5
             stopMotors(brick, 'Brake');
             pause(1);
             moveForward(brick, 40, 2);
             
-        case 3 % green
+        case 3
             stopMotors(brick, 'Brake');
             beepMultiple(brick, 3);
             pause(1);
             moveForward(brick, -50, 2);
             turnRight(brick, 25, 1);
 
-        case 2 % blue
+        case 2
             stopMotors(brick, 'Brake');
             beepMultiple(brick, 2);
             pause(1);
             moveForward(brick, -50, 2);
             turnRight(brick, 25, 1);
 
-        case 4 % yellow
+        case 4
             stopMotors(brick, 'Brake');
             pause(1);
     end
@@ -135,5 +127,8 @@ while done == 0
             turnLeft(brick, 25, 1);
             disp("Turning left due to: " + newDist);
         end
+    else
+        moveStraight(brick, 40); % Keep moving straight if no conditions are triggered
     end
 end
+
