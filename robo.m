@@ -16,17 +16,7 @@ function stopMotors(brick, mode)
     brick.StopAllMotors(mode);
 end
 
-function turnRight(brick, speed, duration)
-    brick.MoveMotor('B', -speed);
-    brick.MoveMotor('C', speed);
-    pause(duration);
-end
 
-function turnLeft(brick, speed, duration)
-    brick.MoveMotor('B', speed);
-    brick.MoveMotor('C', -speed);
-    pause(duration);
-end
 
 function beepMultiple(brick, times)
     for i = 1:times
@@ -41,8 +31,12 @@ while done == 0
     disp("New distance: " + newDist);
     disp("Color: " + color);
 
-    if newDist > 102
-        turnRight(brick, 30, 1);
+    if newDist > 50
+        disp('Turning right...');
+        brick.MoveMotor('C', 36);
+        brick.MoveMotor('B', -32);
+        pause(1);
+        brick.StopAllMotors();
         moveForward(brick, 40, 3);
     end
 
@@ -57,14 +51,22 @@ while done == 0
             beepMultiple(brick, 3);
             pause(1);
             moveForward(brick, -50, 2);
-            turnRight(brick, 25, 1);
+            disp('Turning right...');
+            brick.MoveMotor('C', 36);
+            brick.MoveMotor('B', -32);
+            pause(1);
+            brick.StopAllMotors();
 
         case 2
             stopMotors(brick, 'Brake');
             beepMultiple(brick, 2);
             pause(1);
             moveForward(brick, -50, 2);
-            turnRight(brick, 25, 1);
+            disp('Turning right...');
+            brick.MoveMotor('C', 36);
+            brick.MoveMotor('B', -32);
+            pause(1);
+            brick.StopAllMotors();
 
         case 4
             stopMotors(brick, 'Brake');
@@ -73,15 +75,21 @@ while done == 0
 
     if brick.TouchPressed(3) == 1
         stopMotors(brick, 'Brake');
-        pause(2);
-        moveForward(brick, -30, 1);
+        pause(1);
+        moveForward(brick, -15, 1);
         
-        if newDist < 65
-            turnRight(brick, 30, 1);
-            disp("Turning right due to: " + newDist);
+        if newDist < 50
+            disp('Turning right...');
+            brick.MoveMotor('C', 36);
+            brick.MoveMotor('B', -32);
+            pause(1);
+            brick.StopAllMotors();
         else
-            turnLeft(brick, 30, 1);
-            disp("Turning left due to: " + newDist);
+            disp('Turning left...');
+            brick.MoveMotor('C', -36);
+            brick.MoveMotor('B', 32);
+            pause(1);
+            brick.StopAllMotors();
         end
     else
         moveStraight(brick, 40);
