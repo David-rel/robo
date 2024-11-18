@@ -1,3 +1,4 @@
+ 
 global key
  InitKeyboard();
  while 1
@@ -24,6 +25,15 @@ global key
          case 0
              disp('No key is pressed');
              brick.MoveMotor('BC', 0);
+             pause(0.5);
+         case 'w'
+             brick.MoveMotor('A', -5);
+             pause(0.2);
+             brick.MoveMotor('A', 0);
+         case 's'
+             brick.MoveMotor('A', 5);
+             pause(0.2);          
+             brick.MoveMotor('A', 0);
          case 'q'
              break;
      end
