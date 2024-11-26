@@ -1,0 +1,106 @@
+% brick = ConnectBrick('ANT');
+done = 0;
+oldDist = 0;
+pauseTime = 2;
+
+function moveStraight(brick, speed)
+    brick.MoveMotor('B', speed);
+q    brick.MoveMotor('C', speed);
+end
+
+function moveForward(brick, speed, duration)
+    brick.MoveMotor('B', speed);
+    brick.MoveMotor('C', speed);
+    pause(duration);
+end
+
+function stopMotors(brick, mode)
+    brick.StopAllMotors(mode);
+end
+
+
+
+function beepMultiple(brick, times)
+    for i = 1:times
+        brick.beep();
+        pause(0.5);
+    end
+end
+
+while done == 0
+    color = brick.ColorCode(1);
+    newDist = brick.UltrasonicDist(4);
+    disp("New distance: " + newDist);
+    disp("Color: " + color);
+
+  
+   
+    
+
+    switch color
+        case 5
+            stopMotors(brick, 'Brake');
+            pause(pauseTime);
+            moveForward(brick, 40, 2);
+            
+        case 3
+            beepMultiple(brick, 3);
+            pause(pauseTime);
+            run('keyboard.m');
+
+
+        case 2
+            stopMotors(brick, 'Brake');
+            beepMultiple(brick, 2);
+            pause(pauseTime);
+            gotPerson = 1;
+            run('keyboard.m');
+
+        case 4
+            beepMultiple(brick, 1);
+            pause(pauseTime);
+            run('keyboard.m');
+
+    end
+     if newDist > 70
+        %moveForward(brick, 40, 0);
+        disp('Turning left...');
+        brick.MoveMotor('BC', 0);
+        pause(pauseTime);
+
+        % made big change here
+        brick.MoveMotor('C', 0);
+        brick.MoveMotor('B', 50);
+        pause(pauseTime);
+        brick.MoveMotor('B', 0);
+        oldDist = brick.UltrasonicDist(4);
+        moveForward(brick, 50, 2);
+    end
+    if brick.TouchPressed(3) > 0
+        disp("backing up");
+        stopMotors(brick, 'Brake');
+        pause(pauseTime);
+        moveForward(brick, -30, 1);
+        
+        if newDist < 60
+             disp('Turning right...');
+            brick.MoveMotor('C', 0);
+            brick.MoveMotor('B', -50);
+            pause(pauseTime);
+            brick.MoveMotor('B', 0);
+            brick.StopAllMotors();
+        else
+            disp('Turning left...');
+            brick.MoveMotor('C', 0);
+            brick.MoveMotor('B', 50);
+            pause(pauseTime);
+            brick.MoveMotor('B', 0);
+
+            brick.StopAllMotors();
+        end
+    else
+        moveStraight(brick, 40);
+    end
+    newDist = brick.UltrasonicDist(4);
+   
+end
