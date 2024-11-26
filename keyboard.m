@@ -28,11 +28,11 @@ global key
              pause(0.5);
          case 'w'
              brick.MoveMotor('A', -5);
-             pause(0.2);
+             pause(1);
              brick.MoveMotor('A', 0);
          case 's'
              brick.MoveMotor('A', 5);
-             pause(0.2);          
+             pause(1);          
              brick.MoveMotor('A', 0);
          case 'q'
              break;
